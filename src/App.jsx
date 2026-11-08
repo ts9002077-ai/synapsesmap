@@ -1,62 +1,74 @@
 import { useState } from 'react'
 import { ReactFlow, Background, Controls } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
+import {
+  nodes as baseNodes,
+  edges as baseEdges,
+  notes,
+  summary,
+  mcq,
+  written,
+} from './data'
 
-const baseNodes = [
-  { id: '1', position: { x: 300, y: 200 }, data: { label: 'Photosynthesis' } },
-  { id: '2', position: { x: 50, y: 50 }, data: { label: 'Sunlight' } },
-  { id: '3', position: { x: 50, y: 350 }, data: { label: 'Water' } },
-  { id: '4', position: { x: 300, y: 0 }, data: { label: 'Chlorophyll' } },
-  { id: '5', position: { x: 550, y: 100 }, data: { label: 'Glucose' } },
-  { id: '6', position: { x: 550, y: 330 }, data: { label: 'Oxygen' } },
-]
+const levelColor = { easy: '#22c55e', medium: '#f59e0b', hard: '#ef4444' }
 
-const baseEdges = [
-  { id: 'e2-1', source: '2', target: '1' },
-  { id: 'e3-1', source: '3', target: '1' },
-  { id: 'e4-1', source: '4', target: '1' },
-  { id: 'e1-5', source: '1', target: '5' },
-  { id: 'e1-6', source: '1', target: '6' },
-]
+function Diagram() {
+  return (
+    <>
+      <svg viewBox="0 0 320 280" style={{ width: '100%', background: '#10101c', borderRadius: 8 }}>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#facc15" />
+          </marker>
+        </defs>
 
-const notes = {
-  '1': 'The process plants use to turn light, water and carbon dioxide into food.',
-  '2': 'Provides the light energy that powers photosynthesis.',
-  '3': 'Absorbed by the roots. Split during photosynthesis to release oxygen.',
-  '4': 'The green pigment in chloroplasts that absorbs sunlight.',
-  '5': 'The sugar the plant makes and uses as energy.',
-  '6': 'Released into the air as a by-product.',
+        <circle cx="45" cy="45" r="22" fill="#facc15" />
+        <text x="45" y="85" fill="white" fontSize="11" textAnchor="middle">Sunlight</text>
+        <line x1="65" y1="62" x2="120" y2="112" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
+
+        <path
+          d="M120 160 Q 160 80 260 100 Q 250 200 140 205 Q 125 185 120 160 Z"
+          fill="#166534" stroke="#4ade80" strokeWidth="2"
+        />
+        <text x="190" y="148" fill="white" fontSize="12" textAnchor="middle">Leaf</text>
+        <text x="190" y="164" fill="white" fontSize="10" textAnchor="middle">(chloroplasts)</text>
+
+        <line x1="300" y1="62" x2="258" y2="105" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
+        <text x="305" y="50" fill="white" fontSize="11" textAnchor="end">CO₂ in</text>
+
+        <line x1="40" y1="235" x2="130" y2="198" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
+        <text x="15" y="255" fill="white" fontSize="11">Water (from roots)</text>
+
+        <line x1="235" y1="198" x2="285" y2="238" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
+        <text x="310" y="256" fill="white" fontSize="11" textAnchor="end">O₂ out</text>
+
+        <line x1="180" y1="206" x2="180" y2="236" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
+        <text x="180" y="254" fill="white" fontSize="11" textAnchor="middle">Glucose</text>
+      </svg>
+
+      <p style={{ marginTop: 16 }}><b>6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂</b></p>
+      <p style={{ opacity: 0.7, fontSize: 13 }}>
+        Tip: later you can replace this with your own drawing. Put the image in the
+        public folder and show it with an img tag.
+      </p>
+    </>
+  )
 }
 
-const questions = [
-  {
-    nodeId: '4',
-    question: 'What does chlorophyll do?',
-    options: ['Absorbs sunlight', 'Absorbs water', 'Stores sugar', 'Releases oxygen'],
-    answer: 0,
-  },
-  {
-    nodeId: '6',
-    question: 'Which gas is released during photosynthesis?',
-    options: ['Carbon dioxide', 'Nitrogen', 'Oxygen', 'Hydrogen'],
-    answer: 2,
-  },
-  {
-    nodeId: '5',
-    question: 'What sugar does the plant make?',
-    options: ['Glucose', 'Starch only', 'Protein', 'Salt'],
-    answer: 0,
-  },
-]
-
 function App() {
-  const [mode, setMode] = useState('notes')
+  const [tab, setTab] = useState('notes')
   const [selected, setSelected] = useState(null)
+  const [quizType, setQuizType] = useState('mcq')
+  const [level, setLevel] = useState('all')
   const [qIndex, setQIndex] = useState(0)
   const [picked, setPicked] = useState(null)
+  const [text, setText] = useState('')
+  const [result, setResult] = useState(null)
   const [lit, setLit] = useState([])
 
-  const q = questions[qIndex]
+  const all = quizType === 'mcq' ? mcq : written
+  const pool = all.filter((item) => level === 'all' || item.level === level)
+  const q = pool[qIndex]
   const linkedNode = baseNodes.find((n) => n.id === q.nodeId)
 
   const nodes = baseNodes.map((n) =>
@@ -75,17 +87,47 @@ function App() {
       : e
   )
 
+  function resetQuestion() {
+    setPicked(null)
+    setText('')
+    setResult(null)
+  }
+
+  function changeType(t) {
+    setQuizType(t)
+    setQIndex(0)
+    resetQuestion()
+  }
+
+  function changeLevel(l) {
+    setLevel(l)
+    setQIndex(0)
+    resetQuestion()
+  }
+
+  function lightUp(id) {
+    setLit((prev) => (prev.includes(id) ? prev : [...prev, id]))
+  }
+
   function choose(i) {
     if (picked !== null) return
     setPicked(i)
-    if (i === q.answer && !lit.includes(q.nodeId)) {
-      setLit([...lit, q.nodeId])
-    }
+    if (i === q.answer) lightUp(q.nodeId)
+  }
+
+  function submitWritten() {
+    if (result !== null || text.trim() === '') return
+    const answer = text.toLowerCase()
+    const hits = q.keywords.map((group) => group.some((word) => answer.includes(word)))
+    const count = hits.filter(Boolean).length
+    const pass = count >= q.need
+    setResult({ hits, count, pass })
+    if (pass) lightUp(q.nodeId)
   }
 
   function nextQuestion() {
-    setPicked(null)
-    setQIndex((qIndex + 1) % questions.length)
+    setQIndex((qIndex + 1) % pool.length)
+    resetQuestion()
   }
 
   const btn = (active) => ({
@@ -97,6 +139,16 @@ function App() {
     color: 'white',
   })
 
+  const chip = (active) => ({
+    padding: '6px 10px',
+    borderRadius: 14,
+    border: '1px solid #3b3b6b',
+    cursor: 'pointer',
+    background: active ? '#3b3b6b' : 'transparent',
+    color: 'white',
+    textTransform: 'capitalize',
+  })
+
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex' }}>
       <div style={{ flex: 1 }}>
@@ -105,75 +157,170 @@ function App() {
           edges={edges}
           colorMode="dark"
           fitView
-          onNodeClick={(event, node) => setSelected(node)}
+          onNodeClick={(event, node) => {
+            setSelected(node)
+            setTab('notes')
+          }}
         >
           <Background />
           <Controls />
         </ReactFlow>
       </div>
 
-      <div style={{ width: 320, background: '#0b0b14', color: 'white', overflowY: 'auto' }}>
+      <div style={{ width: 360, background: '#0b0b14', color: 'white', overflowY: 'auto' }}>
         <div style={{ display: 'flex' }}>
-          <button style={btn(mode === 'notes')} onClick={() => setMode('notes')}>Notes</button>
-          <button style={btn(mode === 'quiz')} onClick={() => setMode('quiz')}>Quiz</button>
+          <button style={btn(tab === 'notes')} onClick={() => setTab('notes')}>Notes</button>
+          <button style={btn(tab === 'diagram')} onClick={() => setTab('diagram')}>Diagram</button>
+          <button style={btn(tab === 'quiz')} onClick={() => setTab('quiz')}>Quiz</button>
         </div>
 
-        <div style={{ padding: 24 }}>
-          {mode === 'notes' && (
+        <div style={{ padding: 20 }}>
+          {tab === 'notes' && (
             selected ? (
               <>
                 <h2>{selected.data.label}</h2>
                 <p>{notes[selected.id]}</p>
+                <button
+                  onClick={() => setSelected(null)}
+                  style={{ ...chip(false), marginTop: 8 }}
+                >
+                  Back to summary
+                </button>
               </>
             ) : (
-              <p>Click a node to see its notes.</p>
+              <>
+                <h2>Short notes</h2>
+                <ul style={{ paddingLeft: 18, lineHeight: 1.5 }}>
+                  {summary.map((line, i) => (
+                    <li key={i} style={{ marginBottom: 8 }}>{line}</li>
+                  ))}
+                </ul>
+                <p style={{ opacity: 0.6 }}>Click any node on the map for its own notes.</p>
+              </>
             )
           )}
 
-          {mode === 'quiz' && (
+          {tab === 'diagram' && <Diagram />}
+
+          {tab === 'quiz' && (
             <>
-              <p style={{ opacity: 0.6 }}>
-                Question {qIndex + 1} of {questions.length} · linked to: {linkedNode.data.label}
+              <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+                <button style={chip(quizType === 'mcq')} onClick={() => changeType('mcq')}>Multiple choice</button>
+                <button style={chip(quizType === 'written')} onClick={() => changeType('written')}>Written</button>
+              </div>
+
+              <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+                {['all', 'easy', 'medium', 'hard'].map((l) => (
+                  <button key={l} style={chip(level === l)} onClick={() => changeLevel(l)}>{l}</button>
+                ))}
+              </div>
+
+              <p style={{ opacity: 0.6, margin: '4px 0' }}>
+                Question {qIndex + 1} of {pool.length} · linked to: {linkedNode.data.label}
               </p>
-              <p style={{ color: '#facc15' }}>
-                Connections lit: {lit.length} / {questions.length}
+              <p style={{ margin: '4px 0' }}>
+                <span style={{ color: levelColor[q.level] }}>● {q.level}</span>
+                {'  '}
+                <span style={{ color: '#facc15' }}>Connections lit: {lit.length} / {baseNodes.length}</span>
               </p>
+
               <h3>{q.question}</h3>
 
-              {q.options.map((option, i) => (
-                <button
-                  key={i}
-                  onClick={() => choose(i)}
-                  style={{
-                    display: 'block',
-                    width: '100%',
-                    textAlign: 'left',
-                    padding: 12,
-                    marginBottom: 8,
-                    borderRadius: 6,
-                    border: '1px solid #3b3b6b',
-                    cursor: 'pointer',
-                    color: 'white',
-                    background:
-                      picked === null
-                        ? '#1a1a2e'
-                        : i === q.answer
-                        ? '#14532d'
-                        : i === picked
-                        ? '#7f1d1d'
-                        : '#1a1a2e',
-                  }}
-                >
-                  {option}
-                </button>
-              ))}
-
-              {picked !== null && (
+              {quizType === 'mcq' && (
                 <>
-                  <p>{picked === q.answer ? 'Correct! Connection lit up.' : 'Not quite.'}</p>
-                  <button onClick={nextQuestion} style={btn(true)}>Next question</button>
+                  {q.options.map((option, i) => (
+                    <button
+                      key={i}
+                      onClick={() => choose(i)}
+                      style={{
+                        display: 'block',
+                        width: '100%',
+                        textAlign: 'left',
+                        padding: 12,
+                        marginBottom: 8,
+                        borderRadius: 6,
+                        border: '1px solid #3b3b6b',
+                        cursor: 'pointer',
+                        color: 'white',
+                        background:
+                          picked === null
+                            ? '#1a1a2e'
+                            : i === q.answer
+                            ? '#14532d'
+                            : i === picked
+                            ? '#7f1d1d'
+                            : '#1a1a2e',
+                      }}
+                    >
+                      {option}
+                    </button>
+                  ))}
+
+                  {picked !== null && (
+                    <>
+                      <p>{picked === q.answer ? 'Correct! Connection lit up.' : 'Not quite.'}</p>
+                      <button onClick={nextQuestion} style={btn(true)}>Next question</button>
+                    </>
+                  )}
                 </>
               )}
+
+              {quizType === 'written' && (
+                <>
+                  <textarea
+                    value={text}
+                    onChange={(e) => setText(e.target.value)}
+                    disabled={result !== null}
+                    rows={5}
+                    placeholder="Type your answer here..."
+                    style={{
+                      width: '100%',
+                      boxSizing: 'border-box',
+                      padding: 10,
+                      borderRadius: 6,
+                      border: '1px solid #3b3b6b',
+                      background: '#1a1a2e',
+                      color: 'white',
+                      fontFamily: 'inherit',
+                    }}
+                  />
+
+                  {result === null ? (
+                    <button
+                      onClick={submitWritten}
+                      style={{ ...btn(true), flex: 'none', width: '100%', marginTop: 8, borderRadius: 6 }}
+                    >
+                      Submit answer
+                    </button>
+                  ) : (
+                    <>
+                      <p>{result.pass ? 'Good answer! Connection lit up.' : 'Not enough key points yet.'}</p>
+                      <p>
+                        Key points found: {result.count} / {q.keywords.length} (need {q.need})
+                      </p>
+                      <p>
+                        {q.keywords.map((group, i) => (
+                          <span
+                            key={i}
+                            style={{ marginRight: 12, color: result.hits[i] ? '#4ade80' : '#f87171' }}
+                          >
+                            {result.hits[i] ? '✓' : '✗'} {group[0]}
+                          </span>
+                        ))}
+                      </p>
+                      <p style={{ opacity: 0.85 }}><b>Model answer:</b> {q.modelAnswer}</p>
+                      <button onClick={nextQuestion} style={btn(true)}>Next question</button>
+                    </>
+                  )}
+                </>
+              )}
+
+              <button
+                onClick={() => setLit([])}
+                style={{ ...chip(false), marginTop: 20, opacity: 0.7 }}
+              >
+                Reset map
+              </button>
             </>
           )}
         </div>
