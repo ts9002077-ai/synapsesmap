@@ -1,15 +1,15 @@
 export const nodes = [
-  { id: '1', position: { x: 340, y: 0 }, data: { label: 'Photosynthesis' } },
-  { id: '11', position: { x: 540, y: 0 }, data: { label: 'Stomata' } },
-  { id: '2', position: { x: -20, y: 120 }, data: { label: 'Sunlight' } },
-  { id: '3', position: { x: 150, y: 120 }, data: { label: 'Water' } },
-  { id: '8', position: { x: 340, y: 120 }, data: { label: 'Chloroplast' } },
-  { id: '7', position: { x: 540, y: 120 }, data: { label: 'Carbon Dioxide' } },
-  { id: '9', position: { x: 100, y: 240 }, data: { label: 'Light Reactions' } },
-  { id: '10', position: { x: 420, y: 240 }, data: { label: 'Calvin Cycle' } },
-  { id: '4', position: { x: 700, y: 240 }, data: { label: 'Chlorophyll' } },
-  { id: '6', position: { x: 100, y: 370 }, data: { label: 'Oxygen' } },
-  { id: '5', position: { x: 420, y: 370 }, data: { label: 'Glucose' } },
+  { id: '1', position: { x: 315, y: 0 }, data: { label: 'Photosynthesis', size: 'large' } },
+  { id: '11', position: { x: 640, y: 0 }, data: { label: 'Stomata' } },
+  { id: '2', position: { x: -20, y: 130 }, data: { label: 'Sunlight' } },
+  { id: '3', position: { x: 150, y: 130 }, data: { label: 'Water' } },
+  { id: '8', position: { x: 340, y: 130 }, data: { label: 'Chloroplast', size: 'medium' } },
+  { id: '7', position: { x: 560, y: 130 }, data: { label: 'Carbon Dioxide' } },
+  { id: '9', position: { x: 90, y: 260 }, data: { label: 'Light Reactions', size: 'medium' } },
+  { id: '10', position: { x: 420, y: 260 }, data: { label: 'Calvin Cycle', size: 'medium' } },
+  { id: '4', position: { x: 720, y: 260 }, data: { label: 'Chlorophyll' } },
+  { id: '6', position: { x: 100, y: 390 }, data: { label: 'Oxygen' } },
+  { id: '5', position: { x: 430, y: 390 }, data: { label: 'Glucose' } },
 ]
 
 export const edges = [

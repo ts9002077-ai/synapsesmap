@@ -109,3 +109,20 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+@keyframes popIn {
+  0% { transform: scale(0.7); }
+  55% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+@keyframes ringPulse {
+  0% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.9); }
+  100% { box-shadow: 0 0 0 45px rgba(250, 204, 21, 0); }
+}
+
+@keyframes floatUp {
+  0% { opacity: 0; transform: translateY(12px); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-28px); }
+}
