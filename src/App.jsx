@@ -5,6 +5,7 @@ import SynapseNode from './SynapseNode'
 import { theme } from './theme'
 import './effects.css'
 import ScoreBoard from './ScoreBoard'
+import UploadPanel from './UploadPanel'
 import {
   nodes as baseNodes,
   edges as baseEdges,
@@ -81,7 +82,7 @@ function DiagramImage() {
 }
 
 function App() {
-  const [tab, setTab] = useState('notes')
+  const [tab, setTab] = useState('upload')
   const [selected, setSelected] = useState(null)
   const [quizType, setQuizType] = useState('mcq')
   const [level, setLevel] = useState('all')
@@ -90,6 +91,7 @@ function App() {
   const [text, setText] = useState('')
   const [result, setResult] = useState(null)
   const [lit, setLit] = useState([])
+    const [started, setStarted] = useState(false)
     const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
   const [done, setDone] = useState([])
@@ -214,7 +216,35 @@ function App() {
     fontSize: 13,
     textTransform: 'capitalize',
   })
+  if (!started) {
     return (
+      <div
+        style={{
+          position: 'fixed',
+          inset: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: theme.background,
+          color: 'white',
+          fontFamily: theme.font,
+        }}
+      >
+        <div style={{ width: 440, maxWidth: '90%' }}>
+          <h1 style={{ marginTop: 0 }}>SynapseMap AI</h1>
+          <p style={{ opacity: 0.7 }}>Turn pages of notes into an interactive brain map.</p>
+          <UploadPanel
+            onDone={() => {
+              setStarted(true)
+              setTab('notes')
+            }}
+          />
+        </div>
+      </div>
+    )
+  }
+  
+  return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', fontFamily: theme.font }}>
       <div style={{ flex: 1 }}>
         <ReactFlow
@@ -237,6 +267,7 @@ function App() {
 
       <div style={{ width: 360, background: theme.panel, textAlign: 'left', color: 'white', overflowY: 'auto' }}>
         <div style={{ display: 'flex', gap: 6, padding: 10, borderBottom: '1px solid #1f1f3a' }}>
+<button style={btn(tab === 'upload')} onClick={() => setTab('upload')}>Upload</button>
           <button style={btn(tab === 'notes')} onClick={() => setTab('notes')}>Notes</button>
           <button style={btn(tab === 'diagram')} onClick={() => setTab('diagram')}>Diagram</button>
           <button style={btn(tab === 'quiz')} onClick={() => setTab('quiz')}>Quiz</button>
@@ -269,6 +300,7 @@ function App() {
           )}
 
           {tab === 'diagram' && <DiagramImage />}
+          {tab === 'upload' && <UploadPanel onDone={() => setTab('notes')} />}
 
           {tab === 'quiz' && (
             <>
