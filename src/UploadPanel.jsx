@@ -1,20 +1,15 @@
 import { useState } from 'react'
 import { theme } from './theme'
-import { nodes, mcq, written } from './data'
+import { ui } from './ui'
 
-const steps = [
-  'Reading your notes...',
-  'Finding key concepts...',
-  'Building the synapse map...',
-  'Writing questions...',
-]
-
-export default function UploadPanel({ onDone }) {
+export default function UploadPanel({ topics, onDone }) {
+  const [chosen, setChosen] = useState(null)
   const [stage, setStage] = useState('idle')
   const [progress, setProgress] = useState(0)
 
-  function start() {
+  function start(topic) {
     if (stage !== 'idle') return
+    setChosen(topic)
     setStage('working')
     setProgress(0)
     let p = 0
@@ -28,37 +23,73 @@ export default function UploadPanel({ onDone }) {
     }, 120)
   }
 
-  const step = steps[Math.min(Math.floor(progress / 25), steps.length - 1)]
+  function pickByName(name) {
+    const n = (name || '').toLowerCase()
+    return topics.find((x) => n.includes(x.id)) || topics[0]
+  }
+
+  const t = chosen ? ui[chosen.lang].up : null
+  const step = t ? t.steps[Math.min(Math.floor(progress / 25), t.steps.length - 1)] : ''
 
   return (
     <div>
-      <h2>Upload study notes</h2>
+      <h1 style={{ marginTop: 0 }}>SynapseMap AI</h1>
+      <p style={{ opacity: 0.7 }}>Turn pages of notes into an interactive brain map.</p>
 
       {stage === 'idle' && (
-        <div
-          onClick={start}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault()
-            start()
-          }}
-          style={{
-            border: `2px dashed ${theme.accent}`,
-            borderRadius: 12,
-            padding: '40px 20px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            background: '#12122a',
-          }}
-        >
-          <div style={{ fontSize: 36 }}>📄</div>
-          <p style={{ margin: '8px 0 4px', fontWeight: 600 }}>Drop your notes here</p>
-          <p style={{ margin: 0, opacity: 0.6, fontSize: 13 }}>PDF, DOCX or TXT · click to start</p>
-        </div>
+        <>
+          <div
+            onClick={() => start(topics[0])}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault()
+              const f = e.dataTransfer.files[0]
+              start(pickByName(f && f.name))
+            }}
+            style={{
+              border: `2px dashed ${theme.accent}`,
+              borderRadius: 12,
+              padding: '36px 20px',
+              textAlign: 'center',
+              cursor: 'pointer',
+              background: '#12122a',
+            }}
+          >
+            <div style={{ fontSize: 36 }}>📄</div>
+            <p style={{ margin: '8px 0 4px', fontWeight: 600 }}>Drop your notes here</p>
+            <p style={{ margin: 0, opacity: 0.6, fontSize: 13 }}>PDF, DOCX or TXT</p>
+          </div>
+
+          <p style={{ opacity: 0.6, fontSize: 13, margin: '18px 0 8px' }}>Or choose a sample file:</p>
+          {topics.map((x) => (
+            <button
+              key={x.id}
+              onClick={() => start(x)}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                width: '100%',
+                padding: 12,
+                marginBottom: 8,
+                borderRadius: 8,
+                border: '1px solid #2d2d52',
+                background: '#12122a',
+                color: 'white',
+                cursor: 'pointer',
+                fontFamily: theme.font,
+                textAlign: 'left',
+              }}
+            >
+              <span>📄 {x.sample}</span>
+              <span style={{ opacity: 0.6, fontSize: 12 }}>{ui[x.lang].up.language}</span>
+            </button>
+          ))}
+        </>
       )}
 
       {stage === 'working' && (
-        <div style={{ padding: '30px 0' }}>
+        <div style={{ padding: '24px 0' }}>
+          <p style={{ opacity: 0.7, margin: '0 0 8px' }}>📄 {chosen.sample}</p>
           <p style={{ color: theme.glow, fontWeight: 600 }}>{step}</p>
           <div style={{ height: 10, borderRadius: 5, background: '#1f1f3a', overflow: 'hidden' }}>
             <div
@@ -84,14 +115,17 @@ export default function UploadPanel({ onDone }) {
           }}
         >
           <p style={{ color: '#4ade80', fontWeight: 600, marginTop: 0 }}>
-            ✓ Photosynthesis (prepared sample) loaded
+            ✓ {chosen.sample} {t.done}
           </p>
-          <p style={{ margin: '4px 0' }}>{nodes.length} concepts mapped</p>
           <p style={{ margin: '4px 0' }}>
-            {mcq.length} multiple-choice + {written.length} written questions
+            {chosen.nodes.length} {t.concepts}
           </p>
+          <p style={{ margin: '4px 0' }}>
+            {chosen.mcq.length} {t.mcqWord} + {chosen.written.length} {t.writtenWord}
+          </p>
+          <p style={{ margin: '4px 0', opacity: 0.7 }}>{t.language}</p>
           <button
-            onClick={onDone}
+            onClick={() => onDone(chosen.id)}
             style={{
               marginTop: 14,
               width: '100%',
@@ -105,13 +139,13 @@ export default function UploadPanel({ onDone }) {
               cursor: 'pointer',
             }}
           >
-            Open my map
+            {t.open}
           </button>
         </div>
       )}
 
       <p style={{ opacity: 0.5, fontSize: 12, marginTop: 20 }}>
-        Prototype: this loads a prepared Photosynthesis sample.
+        Prototype: this loads prepared sample notes.
       </p>
     </div>
   )

@@ -1,6 +1,6 @@
 import { theme } from './theme'
 
-export default function ScoreBoard({ score, streak, lit, total, toast }) {
+export default function ScoreBoard({ score, streak, lit, total, toast, label = 'connections' }) {
   return (
     <>
       <div
@@ -17,7 +17,8 @@ export default function ScoreBoard({ score, streak, lit, total, toast }) {
       >
         <div style={{ fontSize: 28, fontWeight: 600, color: theme.glow }}>⚡ {score}</div>
         <div style={{ opacity: 0.8 }}>
-          {lit} / {total} connections{streak >= 2 ? `  ·  🔥 ${streak}` : ''}
+          {lit} / {total} {label}
+          {streak >= 2 ? `  ·  🔥 ${streak}` : ''}
         </div>
       </div>
 

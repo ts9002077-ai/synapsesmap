@@ -1,89 +1,23 @@
 import { useState } from 'react'
 import { ReactFlow, Background, Controls } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
-import SynapseNode from './SynapseNode'
-import { theme } from './theme'
 import './effects.css'
+import SynapseNode from './SynapseNode'
 import ScoreBoard from './ScoreBoard'
 import UploadPanel from './UploadPanel'
+import { DiagramImage, PeopleDiagram } from './Diagrams'
 import { playReaction } from './sounds'
-import {
-  nodes as baseNodes,
-  edges as baseEdges,
-  notes,
-  summary,
-  mcq,
-  written,
-} from './data'
+import { topics } from './topics'
+import { ui } from './ui'
+import { theme } from './theme'
 
 const levelColor = { easy: '#22c55e', medium: '#f59e0b', hard: '#ef4444' }
 const nodeTypes = { synapse: SynapseNode }
 
-function Diagram() {
-  return (
-    <>
-      <svg viewBox="0 0 320 280" style={{ width: '100%', background: '#10101c', borderRadius: 8 }}>
-        <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
-            <path d="M0,0 L8,4 L0,8 z" fill="#facc15" />
-          </marker>
-        </defs>
-
-        <circle cx="45" cy="45" r="22" fill="#facc15" />
-        <text x="45" y="85" fill="white" fontSize="11" textAnchor="middle">Sunlight</text>
-        <line x1="65" y1="62" x2="120" y2="112" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
-
-        <path
-          d="M120 160 Q 160 80 260 100 Q 250 200 140 205 Q 125 185 120 160 Z"
-          fill="#166534" stroke="#4ade80" strokeWidth="2"
-        />
-        <text x="190" y="148" fill="white" fontSize="12" textAnchor="middle">Leaf</text>
-        <text x="190" y="164" fill="white" fontSize="10" textAnchor="middle">(chloroplasts)</text>
-
-        <line x1="300" y1="62" x2="258" y2="105" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
-        <text x="305" y="50" fill="white" fontSize="11" textAnchor="end">CO₂ in</text>
-
-        <line x1="40" y1="235" x2="130" y2="198" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
-        <text x="15" y="255" fill="white" fontSize="11">Water (from roots)</text>
-
-        <line x1="235" y1="198" x2="285" y2="238" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
-        <text x="310" y="256" fill="white" fontSize="11" textAnchor="end">O₂ out</text>
-
-        <line x1="180" y1="206" x2="180" y2="236" stroke="#facc15" strokeWidth="2" markerEnd="url(#arrow)" />
-        <text x="180" y="254" fill="white" fontSize="11" textAnchor="middle">Glucose</text>
-      </svg>
-
-      <p style={{ marginTop: 16 }}><b>6CO₂ + 6H₂O + light → C₆H₁₂O₆ + 6O₂</b></p>
-      <p style={{ opacity: 0.7, fontSize: 13 }}>
-        Tip: later you can replace this with your own drawing. Put the image in the
-        public folder and show it with an img tag.
-      </p>
-    </>
-  )
-}
-
-function DiagramImage() {
-  const [failed, setFailed] = useState(false)
-
-  if (failed) return <Diagram />
-
-  return (
-    <>
-      <a href="/diagrams/photosynthesis.png" target="_blank" rel="noreferrer">
-        <img
-          src="/diagrams/photosynthesis.png"
-          alt="Photosynthesis diagram"
-          onError={() => setFailed(true)}
-          style={{ width: '100%', borderRadius: 8, background: '#10101c' }}
-        />
-      </a>
-      <p style={{ opacity: 0.7, fontSize: 13 }}>Click the image to open it full size.</p>
-    </>
-  )
-}
-
 function App() {
-  const [tab, setTab] = useState('upload')
+  const [started, setStarted] = useState(false)
+  const [topicId, setTopicId] = useState(topics[0].id)
+  const [tab, setTab] = useState('notes')
   const [selected, setSelected] = useState(null)
   const [quizType, setQuizType] = useState('mcq')
   const [level, setLevel] = useState('all')
@@ -92,18 +26,22 @@ function App() {
   const [text, setText] = useState('')
   const [result, setResult] = useState(null)
   const [lit, setLit] = useState([])
-    const [started, setStarted] = useState(false)
-    const [score, setScore] = useState(0)
+  const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
   const [done, setDone] = useState([])
   const [toast, setToast] = useState(null)
 
-  const all = quizType === 'mcq' ? mcq : written
+  const topic = topics.find((x) => x.id === topicId)
+  const t = ui[topic.lang]
+  const baseNodes = topic.nodes
+  const baseEdges = topic.edges
+
+  const all = quizType === 'mcq' ? topic.mcq : topic.written
   const pool = all.filter((item) => level === 'all' || item.level === level)
   const q = pool[qIndex]
   const linkedNode = baseNodes.find((n) => n.id === q.nodeId)
 
-    const nodes = baseNodes.map((n) => ({
+  const nodes = baseNodes.map((n) => ({
     ...n,
     type: 'synapse',
     data: { ...n.data, lit: lit.includes(n.id) },
@@ -118,16 +56,35 @@ function App() {
         ? { stroke: theme.glow, strokeWidth: 3, filter: `drop-shadow(0 0 6px ${theme.glow})` }
         : { stroke: theme.accent, strokeWidth: 2, opacity: 0.6 },
     }
-  }) 
-  
+  })
+
   function resetQuestion() {
     setPicked(null)
     setText('')
     setResult(null)
   }
 
-  function changeType(t) {
-    setQuizType(t)
+  function resetAll() {
+    setLit([])
+    setScore(0)
+    setStreak(0)
+    setDone([])
+    setToast(null)
+  }
+
+  function changeTopic(id) {
+    setTopicId(id)
+    setSelected(null)
+    setTab('notes')
+    setQuizType('mcq')
+    setLevel('all')
+    setQIndex(0)
+    resetQuestion()
+    resetAll()
+  }
+
+  function changeType(ty) {
+    setQuizType(ty)
     setQIndex(0)
     resetQuestion()
   }
@@ -136,6 +93,10 @@ function App() {
     setLevel(l)
     setQIndex(0)
     resetQuestion()
+  }
+
+  function lightUp(id) {
+    setLit((prev) => (prev.includes(id) ? prev : [...prev, id]))
   }
 
   function reward(correct) {
@@ -148,7 +109,7 @@ function App() {
     setStreak(newStreak)
     const key = quizType + '-' + q.question
     if (done.includes(key)) {
-      setToast({ id: Date.now(), text: '✓ Correct (already scored)' })
+      setToast({ id: Date.now(), text: t.alreadyScored })
       return
     }
     const points = { easy: 10, medium: 20, hard: 30 }[q.level]
@@ -157,24 +118,14 @@ function App() {
     setScore(score + points + bonus)
     setToast({
       id: Date.now(),
-      text: `+${points + bonus}` + (newStreak >= 2 ? `  🔥 ${newStreak} in a row` : ''),
+      text: `+${points + bonus}` + (newStreak >= 2 ? `  🔥 ${newStreak} ${t.inARow}` : ''),
     })
-  }
-
-  function resetAll() {
-    setLit([])
-    setScore(0)
-    setStreak(0)
-    setDone([])
-    setToast(null)
-  }  function lightUp(id) {
-    setLit((prev) => (prev.includes(id) ? prev : [...prev, id]))
   }
 
   function choose(i) {
     if (picked !== null) return
     setPicked(i)
-        if (i === q.answer) lightUp(q.nodeId)
+    if (i === q.answer) lightUp(q.nodeId)
     reward(i === q.answer)
   }
 
@@ -185,7 +136,7 @@ function App() {
     const count = hits.filter(Boolean).length
     const pass = count >= q.need
     setResult({ hits, count, pass })
-        if (pass) lightUp(q.nodeId)
+    if (pass) lightUp(q.nodeId)
     reward(pass)
   }
 
@@ -218,6 +169,7 @@ function App() {
     fontSize: 13,
     textTransform: 'capitalize',
   })
+
   if (!started) {
     return (
       <div
@@ -230,29 +182,30 @@ function App() {
           background: theme.background,
           color: 'white',
           fontFamily: theme.font,
+          textAlign: 'left',
         }}
       >
-        <div style={{ width: 440, maxWidth: '90%' }}>
-          <h1 style={{ marginTop: 0 }}>SynapseMap AI</h1>
-          <p style={{ opacity: 0.7 }}>Turn pages of notes into an interactive brain map.</p>
+        <div style={{ width: 460, maxWidth: '90%' }}>
           <UploadPanel
-            onDone={() => {
+            topics={topics}
+            onDone={(id) => {
+              changeTopic(id)
               setStarted(true)
-              setTab('notes')
             }}
           />
         </div>
       </div>
     )
   }
-  
+
   return (
     <div style={{ position: 'fixed', inset: 0, display: 'flex', fontFamily: theme.font }}>
       <div style={{ flex: 1 }}>
         <ReactFlow
+          key={topicId}
           nodes={nodes}
           edges={edges}
-                    nodeTypes={nodeTypes}
+          nodeTypes={nodeTypes}
           style={{ background: theme.background }}
           colorMode="dark"
           fitView
@@ -264,15 +217,49 @@ function App() {
           <Background color={theme.accent} gap={28} />
           <Controls />
         </ReactFlow>
-                <ScoreBoard score={score} streak={streak} lit={lit.length} total={baseNodes.length} toast={toast} />
+        <ScoreBoard
+          score={score}
+          streak={streak}
+          lit={lit.length}
+          total={baseNodes.length}
+          toast={toast}
+          label={t.connections}
+        />
       </div>
 
-      <div style={{ width: 360, background: theme.panel, textAlign: 'left', color: 'white', overflowY: 'auto' }}>
+      <div
+        style={{
+          width: 360,
+          background: theme.panel,
+          textAlign: 'left',
+          color: 'white',
+          overflowY: 'auto',
+        }}
+      >
+        <div style={{ padding: '10px 10px 0' }}>
+          <select
+            value={topicId}
+            onChange={(e) => changeTopic(e.target.value)}
+            style={{
+              width: '100%',
+              padding: 8,
+              borderRadius: 8,
+              border: '1px solid #2d2d52',
+              background: '#12122a',
+              color: 'white',
+              fontFamily: 'inherit',
+            }}
+          >
+            {topics.map((x) => (
+              <option key={x.id} value={x.id}>{x.name}</option>
+            ))}
+          </select>
+        </div>
+
         <div style={{ display: 'flex', gap: 6, padding: 10, borderBottom: '1px solid #1f1f3a' }}>
-<button style={btn(tab === 'upload')} onClick={() => setTab('upload')}>Upload</button>
-          <button style={btn(tab === 'notes')} onClick={() => setTab('notes')}>Notes</button>
-          <button style={btn(tab === 'diagram')} onClick={() => setTab('diagram')}>Diagram</button>
-          <button style={btn(tab === 'quiz')} onClick={() => setTab('quiz')}>Quiz</button>
+          <button style={btn(tab === 'notes')} onClick={() => setTab('notes')}>{t.notes}</button>
+          <button style={btn(tab === 'diagram')} onClick={() => setTab('diagram')}>{t.diagram}</button>
+          <button style={btn(tab === 'quiz')} onClick={() => setTab('quiz')}>{t.quiz}</button>
         </div>
 
         <div style={{ padding: 20 }}>
@@ -280,50 +267,56 @@ function App() {
             selected ? (
               <>
                 <h2>{selected.data.label}</h2>
-                <p>{notes[selected.id]}</p>
-                <button
-                  onClick={() => setSelected(null)}
-                  style={{ ...chip(false), marginTop: 8 }}
-                >
-                  Back to summary
+                <p>{topic.notes[selected.id]}</p>
+                <button onClick={() => setSelected(null)} style={{ ...chip(false), marginTop: 8 }}>
+                  {t.backToSummary}
                 </button>
               </>
             ) : (
               <>
-                <h2>Short notes</h2>
+                <h2>{t.shortNotes}</h2>
                 <ul style={{ paddingLeft: 18, lineHeight: 1.5 }}>
-                  {summary.map((line, i) => (
+                  {topic.summary.map((line, i) => (
                     <li key={i} style={{ marginBottom: 8 }}>{line}</li>
                   ))}
                 </ul>
-                <p style={{ opacity: 0.6 }}>Click any node on the map for its own notes.</p>
+                <p style={{ opacity: 0.6 }}>{t.clickNode}</p>
               </>
             )
           )}
 
-          {tab === 'diagram' && <DiagramImage />}
-          {tab === 'upload' && <UploadPanel onDone={() => setTab('notes')} />}
+          {tab === 'diagram' && (
+            topic.diagram.type === 'people' ? (
+              <PeopleDiagram people={topic.diagram.people} timeline={topic.diagram.timeline} t={t} />
+            ) : (
+              <DiagramImage src={topic.diagram.src} hint={t.imgHint} />
+            )
+          )}
 
           {tab === 'quiz' && (
             <>
               <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-                <button style={chip(quizType === 'mcq')} onClick={() => changeType('mcq')}>Multiple choice</button>
-                <button style={chip(quizType === 'written')} onClick={() => changeType('written')}>Written</button>
+                <button style={chip(quizType === 'mcq')} onClick={() => changeType('mcq')}>{t.mcq}</button>
+                <button style={chip(quizType === 'written')} onClick={() => changeType('written')}>{t.written}</button>
               </div>
 
-              <div style={{ display: 'flex', gap: 6, marginBottom: 14 }}>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
                 {['all', 'easy', 'medium', 'hard'].map((l) => (
-                  <button key={l} style={chip(level === l)} onClick={() => changeLevel(l)}>{l}</button>
+                  <button key={l} style={chip(level === l)} onClick={() => changeLevel(l)}>
+                    {t.levels[l]}
+                  </button>
                 ))}
               </div>
 
               <p style={{ opacity: 0.6, margin: '4px 0' }}>
-                Question {qIndex + 1} of {pool.length} · linked to: {linkedNode.data.label}
+                {t.question} {qIndex + 1} {t.of} {pool.length} · {t.linkedTo}: {linkedNode.data.label}
               </p>
               <p style={{ margin: '4px 0' }}>
-                <span style={{ color: levelColor[q.level] }}>● {q.level}</span>
+                <span style={{ color: levelColor[q.level] }}>● {t.levels[q.level]}</span>
                 {'  '}
-                <span style={{ color: '#facc15' }}>Connections lit: {lit.length} / {baseNodes.length}</span>
+                <span style={{ color: '#facc15' }}>
+                  {t.connectionsLit}: {lit.length} / {baseNodes.length}
+                </span>
               </p>
 
               <h3>{q.question}</h3>
@@ -361,8 +354,8 @@ function App() {
 
                   {picked !== null && (
                     <>
-                      <p>{picked === q.answer ? 'Correct! Connection lit up.' : 'Not quite.'}</p>
-                      <button onClick={nextQuestion} style={btn(true)}>Next question</button>
+                      <p>{picked === q.answer ? t.correct : t.wrong}</p>
+                      <button onClick={nextQuestion} style={btn(true)}>{t.next}</button>
                     </>
                   )}
                 </>
@@ -375,7 +368,7 @@ function App() {
                     onChange={(e) => setText(e.target.value)}
                     disabled={result !== null}
                     rows={5}
-                    placeholder="Type your answer here..."
+                    placeholder={t.placeholder}
                     style={{
                       width: '100%',
                       boxSizing: 'border-box',
@@ -391,15 +384,15 @@ function App() {
                   {result === null ? (
                     <button
                       onClick={submitWritten}
-                      style={{ ...btn(true), flex: 'none', width: '100%', marginTop: 8, borderRadius: 6 }}
+                      style={{ ...btn(true), flex: 'none', width: '100%', marginTop: 8 }}
                     >
-                      Submit answer
+                      {t.submit}
                     </button>
                   ) : (
                     <>
-                      <p>{result.pass ? 'Good answer! Connection lit up.' : 'Not enough key points yet.'}</p>
+                      <p>{result.pass ? t.goodAnswer : t.notEnough}</p>
                       <p>
-                        Key points found: {result.count} / {q.keywords.length} (need {q.need})
+                        {t.keyPoints}: {result.count} / {q.keywords.length} ({t.need} {q.need})
                       </p>
                       <p>
                         {q.keywords.map((group, i) => (
@@ -411,8 +404,10 @@ function App() {
                           </span>
                         ))}
                       </p>
-                      <p style={{ opacity: 0.85 }}><b>Model answer:</b> {q.modelAnswer}</p>
-                      <button onClick={nextQuestion} style={btn(true)}>Next question</button>
+                      <p style={{ opacity: 0.85 }}>
+                        <b>{t.modelAnswer}:</b> {q.modelAnswer}
+                      </p>
+                      <button onClick={nextQuestion} style={btn(true)}>{t.next}</button>
                     </>
                   )}
                 </>
@@ -420,11 +415,11 @@ function App() {
 
               <button
                 onClick={() => {
-          if (window.confirm('Reset your score and all lit connections?')) resetAll()
-        }}
+                  if (window.confirm(t.resetConfirm)) resetAll()
+                }}
                 style={{ ...chip(false), marginTop: 20, opacity: 0.7 }}
               >
-                Reset map
+                {t.reset}
               </button>
             </>
           )}
