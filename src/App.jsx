@@ -6,6 +6,7 @@ import { theme } from './theme'
 import './effects.css'
 import ScoreBoard from './ScoreBoard'
 import UploadPanel from './UploadPanel'
+import { playReaction } from './sounds'
 import {
   nodes as baseNodes,
   edges as baseEdges,
@@ -138,6 +139,7 @@ function App() {
   }
 
   function reward(correct) {
+    playReaction(correct)
     if (!correct) {
       setStreak(0)
       return
