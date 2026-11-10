@@ -100,7 +100,7 @@ function App() {
   }
 
   function reward(correct) {
-    playReaction(correct)
+    playReaction(correct, topic.lang)
     if (!correct) {
       setStreak(0)
       return

@@ -1,8 +1,16 @@
-// Change this if your recordings are not mp3 (for example 'm4a', 'wav' or 'ogg')
-const AUDIO_EXT = 'mp3'
+// File type of your recordings for each language (for example 'mp3', 'm4a', 'wav' or 'ogg')
+const AUDIO_EXT = { en: 'mp3', ms: 'ogg' }
 
-// How many voice clips you recorded for each reaction
-const VOICE_COUNT = { correct: 1, wrong: 1 }
+// How many voice clips you recorded for each language and reaction
+const VOICE_COUNT = {
+  en: { correct: 1, wrong: 1 },
+  ms: { correct: 3, wrong: 3 },
+}
+
+// English clips live in /audio, other languages in /audio/<language>
+function voiceFolder(lang) {
+  return lang === 'en' ? '/audio' : `/audio/${lang}`
+}
 
 let ctx = null
 let currentVoice = null
@@ -40,18 +48,22 @@ function playWrong() {
   tone(160, 0.2, 0.3, 'sawtooth', 0.18)
 }
 
-export function playVoice(name) {
+function playVoice(path) {
   if (currentVoice) currentVoice.pause()
-  const audio = new Audio(`/audio/${name}.${AUDIO_EXT}`)
+  const audio = new Audio(path)
   currentVoice = audio
   audio.play().catch(() => {})
 }
 
-export function playReaction(correct) {
+export function playReaction(correct, lang = 'en') {
   if (correct) playCorrect()
   else playWrong()
 
   const kind = correct ? 'correct' : 'wrong'
-  const n = Math.floor(Math.random() * VOICE_COUNT[kind]) + 1
-  setTimeout(() => playVoice(`${kind}${n}`), correct ? 800 : 550)
+  const count = (VOICE_COUNT[lang] || {})[kind] || 0
+  if (count === 0) return
+
+  const n = Math.floor(Math.random() * count) + 1
+  const path = `${voiceFolder(lang)}/${kind}${n}.${AUDIO_EXT[lang] || 'mp3'}`
+  setTimeout(() => playVoice(path), correct ? 800 : 550)
 }
