@@ -12,40 +12,110 @@ function voiceFolder(lang) {
   return lang === 'en' ? '/audio' : `/audio/${lang}`
 }
 
-let ctx = null
+const RATE = 22050
+
+const SOUNDS = {
+  correct: {
+    seconds: 0.9,
+    notes: [
+      { freq: 523.25, start: 0, duration: 0.18, type: 'sine', volume: 0.5 },
+      { freq: 659.25, start: 0.1, duration: 0.18, type: 'sine', volume: 0.5 },
+      { freq: 783.99, start: 0.2, duration: 0.18, type: 'sine', volume: 0.5 },
+      { freq: 1046.5, start: 0.3, duration: 0.5, type: 'sine', volume: 0.5 },
+    ],
+  },
+  wrong: {
+    seconds: 0.6,
+    notes: [
+      { freq: 220, start: 0, duration: 0.2, type: 'sawtooth', volume: 0.3 },
+      { freq: 160, start: 0.2, duration: 0.32, type: 'sawtooth', volume: 0.3 },
+    ],
+  },
+  finishGood: {
+    seconds: 1.3,
+    notes: [
+      { freq: 523.25, start: 0, duration: 0.16, type: 'triangle', volume: 0.5 },
+      { freq: 659.25, start: 0.14, duration: 0.16, type: 'triangle', volume: 0.5 },
+      { freq: 783.99, start: 0.28, duration: 0.16, type: 'triangle', volume: 0.5 },
+      { freq: 1046.5, start: 0.42, duration: 0.8, type: 'triangle', volume: 0.4 },
+      { freq: 1318.5, start: 0.42, duration: 0.8, type: 'sine', volume: 0.25 },
+      { freq: 1568.0, start: 0.42, duration: 0.8, type: 'sine', volume: 0.18 },
+    ],
+  },
+  finishSoft: {
+    seconds: 1.0,
+    notes: [
+      { freq: 392.0, start: 0, duration: 0.4, type: 'sine', volume: 0.45 },
+      { freq: 523.25, start: 0.3, duration: 0.65, type: 'sine', volume: 0.45 },
+    ],
+  },
+}
+
+const urls = {}
 let currentVoice = null
 
-function getCtx() {
-  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)()
-  if (ctx.state === 'suspended') ctx.resume()
-  return ctx
+// Builds the sound as raw samples
+function render(def) {
+  const total = Math.floor(RATE * def.seconds)
+  const data = new Float32Array(total)
+
+  for (const n of def.notes) {
+    const start = Math.floor(n.start * RATE)
+    const len = Math.floor(n.duration * RATE)
+
+    for (let i = 0; i < len && start + i < total; i++) {
+      const time = i / RATE
+      const attack = Math.min(1, i / (RATE * 0.02))
+      const decay = Math.pow(1 - i / len, 2)
+      const cycle = (n.freq * time) % 1
+      let wave
+
+      if (n.type === 'sawtooth') wave = 2 * cycle - 1
+      else if (n.type === 'triangle') wave = 2 * Math.abs(2 * cycle - 1) - 1
+      else wave = Math.sin(2 * Math.PI * n.freq * time)
+
+      data[start + i] += wave * n.volume * attack * decay
+    }
+  }
+
+  return data
 }
 
-function tone(freq, start, duration, type = 'sine', volume = 0.25) {
-  const c = getCtx()
-  const osc = c.createOscillator()
-  const gain = c.createGain()
-  osc.type = type
-  osc.frequency.value = freq
-  gain.gain.setValueAtTime(0.0001, c.currentTime + start)
-  gain.gain.exponentialRampToValueAtTime(volume, c.currentTime + start + 0.02)
-  gain.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + start + duration)
-  osc.connect(gain)
-  gain.connect(c.destination)
-  osc.start(c.currentTime + start)
-  osc.stop(c.currentTime + start + duration + 0.05)
+// Wraps the samples in a WAV file so it can play like any other audio file
+function toWavUrl(data) {
+  const buffer = new ArrayBuffer(44 + data.length * 2)
+  const view = new DataView(buffer)
+
+  function write(offset, text) {
+    for (let i = 0; i < text.length; i++) view.setUint8(offset + i, text.charCodeAt(i))
+  }
+
+  write(0, 'RIFF')
+  view.setUint32(4, 36 + data.length * 2, true)
+  write(8, 'WAVE')
+  write(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, 1, true)
+  view.setUint32(24, RATE, true)
+  view.setUint32(28, RATE * 2, true)
+  view.setUint16(32, 2, true)
+  view.setUint16(34, 16, true)
+  write(36, 'data')
+  view.setUint32(40, data.length * 2, true)
+
+  for (let i = 0; i < data.length; i++) {
+    const s = Math.max(-1, Math.min(1, data[i]))
+    view.setInt16(44 + i * 2, s * 32767, true)
+  }
+
+  return URL.createObjectURL(new Blob([buffer], { type: 'audio/wav' }))
 }
 
-function playCorrect() {
-  tone(523.25, 0, 0.18)
-  tone(659.25, 0.1, 0.18)
-  tone(783.99, 0.2, 0.18)
-  tone(1046.5, 0.3, 0.45)
-}
-
-function playWrong() {
-  tone(220, 0, 0.18, 'sawtooth', 0.18)
-  tone(160, 0.2, 0.3, 'sawtooth', 0.18)
+function playSound(name) {
+  if (!urls[name]) urls[name] = toWavUrl(render(SOUNDS[name]))
+  const audio = new Audio(urls[name])
+  audio.play().catch(() => {})
 }
 
 function playVoice(path) {
@@ -56,8 +126,7 @@ function playVoice(path) {
 }
 
 export function playReaction(correct, lang = 'en') {
-  if (correct) playCorrect()
-  else playWrong()
+  playSound(correct ? 'correct' : 'wrong')
 
   const kind = correct ? 'correct' : 'wrong'
   const count = (VOICE_COUNT[lang] || {})[kind] || 0
@@ -69,15 +138,5 @@ export function playReaction(correct, lang = 'en') {
 }
 
 export function playFinish(good) {
-  if (good) {
-    tone(523.25, 0, 0.16, 'triangle', 0.28)
-    tone(659.25, 0.14, 0.16, 'triangle', 0.28)
-    tone(783.99, 0.28, 0.16, 'triangle', 0.28)
-    tone(1046.5, 0.42, 0.7, 'triangle', 0.3)
-    tone(1318.5, 0.42, 0.7, 'sine', 0.18)
-    tone(1568.0, 0.42, 0.7, 'sine', 0.14)
-  } else {
-    tone(392.0, 0, 0.35, 'sine', 0.22)
-    tone(523.25, 0.3, 0.6, 'sine', 0.22)
-  }
+  playSound(good ? 'finishGood' : 'finishSoft')
 }
