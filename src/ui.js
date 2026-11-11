@@ -17,6 +17,7 @@ export const ui = {
     correct: 'Correct! Connection lit up.',
     wrong: 'Not quite.',
     next: 'Next question',
+    seeResults: 'See results',
     submit: 'Submit answer',
     placeholder: 'Type your answer here...',
     goodAnswer: 'Good answer! Connection lit up.',
@@ -31,6 +32,13 @@ export const ui = {
     imgHint: 'Click the image to open it full size.',
     timeline: 'Timeline',
     people: 'Key people',
+    resultsTitle: 'Quiz complete!',
+    correctWord: 'correct',
+    ratings: ['Excellent!', 'Great job!', 'Good effort', 'Keep practising'],
+    byLevel: 'By difficulty',
+    tryAgain: 'Try again',
+    tryMcq: 'Try multiple choice',
+    tryWritten: 'Try written questions',
     up: {
       steps: [
         'Reading your notes...',
@@ -64,6 +72,7 @@ export const ui = {
     correct: 'Betul! Sambungan menyala.',
     wrong: 'Belum tepat.',
     next: 'Soalan seterusnya',
+    seeResults: 'Lihat keputusan',
     submit: 'Hantar jawapan',
     placeholder: 'Taip jawapan anda di sini...',
     goodAnswer: 'Jawapan bagus! Sambungan menyala.',
@@ -78,6 +87,13 @@ export const ui = {
     imgHint: 'Klik gambar untuk membukanya dalam saiz penuh.',
     timeline: 'Garis masa',
     people: 'Tokoh penting',
+    resultsTitle: 'Kuiz selesai!',
+    correctWord: 'betul',
+    ratings: ['Cemerlang!', 'Bagus sekali!', 'Usaha yang baik', 'Teruskan berlatih'],
+    byLevel: 'Ikut tahap',
+    tryAgain: 'Cuba lagi',
+    tryMcq: 'Cuba aneka pilihan',
+    tryWritten: 'Cuba soalan bertulis',
     up: {
       steps: [
         'Membaca nota anda...',

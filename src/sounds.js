@@ -67,3 +67,17 @@ export function playReaction(correct, lang = 'en') {
   const path = `${voiceFolder(lang)}/${kind}${n}.${AUDIO_EXT[lang] || 'mp3'}`
   setTimeout(() => playVoice(path), correct ? 800 : 550)
 }
+
+export function playFinish(good) {
+  if (good) {
+    tone(523.25, 0, 0.16, 'triangle', 0.28)
+    tone(659.25, 0.14, 0.16, 'triangle', 0.28)
+    tone(783.99, 0.28, 0.16, 'triangle', 0.28)
+    tone(1046.5, 0.42, 0.7, 'triangle', 0.3)
+    tone(1318.5, 0.42, 0.7, 'sine', 0.18)
+    tone(1568.0, 0.42, 0.7, 'sine', 0.14)
+  } else {
+    tone(392.0, 0, 0.35, 'sine', 0.22)
+    tone(523.25, 0.3, 0.6, 'sine', 0.22)
+  }
+}
