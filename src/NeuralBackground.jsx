@@ -91,7 +91,7 @@ export default function NeuralBackground({ count = 50 }) {
   return (
     <canvas
       ref={ref}
-      style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+      style={{ position: 'fixed', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
     />
   )
 }

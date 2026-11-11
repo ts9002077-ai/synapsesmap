@@ -1,6 +1,7 @@
 export const ui = {
   en: {
     notes: 'Notes',
+        map: 'Map',
     diagram: 'Diagram',
     quiz: 'Quiz',
     shortNotes: 'Short notes',
@@ -56,6 +57,7 @@ export const ui = {
   },
   ms: {
     notes: 'Nota',
+        map: 'Peta',
     diagram: 'Gambar Rajah',
     quiz: 'Kuiz',
     shortNotes: 'Nota ringkas',

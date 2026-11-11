@@ -86,3 +86,6 @@ button, textarea {
   transform: translateY(-2px);
   filter: brightness(1.2);
 }
+textarea, select, input {
+  font-size: 16px;
+}

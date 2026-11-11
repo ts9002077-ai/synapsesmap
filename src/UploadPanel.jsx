@@ -78,6 +78,8 @@ export default function UploadPanel({ topics, onDone }) {
               style={{
                 display: 'flex',
                 justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 4,
                 width: '100%',
                 padding: 12,
                 marginBottom: 8,

@@ -48,7 +48,7 @@ export default function Splash({ onFinish }) {
           alignItems: 'center',
         }}
       >
-        <div style={{ width: 'min(420px, 50vh)', animation: 'floatY 4.5s ease-in-out infinite' }}>
+        <div style={{ width: 'min(420px, 50vh, 80vw)', animation: 'floatY 4.5s ease-in-out infinite' }}>
           <div style={{ position: 'relative' }}>
             <img
               src="/logo.jpeg"
