@@ -5,6 +5,8 @@ import './effects.css'
 import SynapseNode from './SynapseNode'
 import ScoreBoard from './ScoreBoard'
 import UploadPanel from './UploadPanel'
+import Splash from './Splash'
+import NeuralBackground from './NeuralBackground'
 import { DiagramImage, PeopleDiagram } from './Diagrams'
 import { playReaction } from './sounds'
 import { topics } from './topics'
@@ -16,6 +18,7 @@ const nodeTypes = { synapse: SynapseNode }
 
 function App() {
   const [started, setStarted] = useState(false)
+    const [splash, setSplash] = useState(true)
   const [topicId, setTopicId] = useState(topics[0].id)
   const [tab, setTab] = useState('notes')
   const [selected, setSelected] = useState(null)
@@ -170,6 +173,10 @@ function App() {
     textTransform: 'capitalize',
   })
 
+  if (splash) {
+    return <Splash onFinish={() => setSplash(false)} />
+  }
+  
   if (!started) {
     return (
       <div
@@ -179,13 +186,14 @@ function App() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: theme.background,
+          background: theme.logoBg,
           color: 'white',
           fontFamily: theme.font,
           textAlign: 'left',
         }}
       >
-        <div style={{ width: 460, maxWidth: '90%' }}>
+        <NeuralBackground />
+        <div style={{ width: 460, maxWidth: '90%', position: 'relative', zIndex: 1 }}>
           <UploadPanel
             topics={topics}
             onDone={(id) => {

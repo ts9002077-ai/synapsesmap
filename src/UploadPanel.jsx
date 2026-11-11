@@ -33,8 +33,18 @@ export default function UploadPanel({ topics, onDone }) {
 
   return (
     <div>
-      <h1 style={{ marginTop: 0 }}>SynapseMap AI</h1>
-      <p style={{ opacity: 0.7 }}>Turn pages of notes into an interactive brain map.</p>
+      <div style={{ textAlign: 'center' }}>
+        <img
+          src="/logo.jpeg"
+          alt="SynapseMap Ai"
+          style={{
+            width: 240,
+            WebkitMaskImage: 'radial-gradient(closest-side, black 88%, transparent 100%)',
+            maskImage: 'radial-gradient(closest-side, black 88%, transparent 100%)',
+          }}
+        />
+        <p style={{ opacity: 0.7, marginTop: 0 }}>Turn pages of notes into an interactive brain map.</p>
+      </div>
 
       {stage === 'idle' && (
         <>
