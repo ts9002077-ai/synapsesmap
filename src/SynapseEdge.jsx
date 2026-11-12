@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { BaseEdge, getBezierPath } from '@xyflow/react'
 import { theme } from './theme'
 
+const seenEdges = new Set()
+
 function Pulse({ path, reverse }) {
   const pathRef = useRef(null)
   const [state, setState] = useState(null)
@@ -64,6 +66,8 @@ function Pulse({ path, reverse }) {
 
 export default function SynapseEdge({
   id,
+  source,
+  target,
   sourceX,
   sourceY,
   targetX,
@@ -82,9 +86,22 @@ export default function SynapseEdge({
     targetPosition,
   })
 
+  const key = `${id}|${Math.round(sourceX)}|${Math.round(sourceY)}`
+  const num = Math.max(parseInt(source, 10) || 0, parseInt(target, 10) || 0)
+  const delay = num * 0.11 + 0.3
+  const [intro] = useState(() => !seenEdges.has(key))
+
+  useEffect(() => {
+    const timer = setTimeout(() => seenEdges.add(key), (delay + 1.3) * 1000)
+    return () => clearTimeout(timer)
+  }, [key, delay])
+
+  const shownStyle =
+    intro && !(data && data.pulse) ? { ...style, animation: `edgeIn 1s ease ${delay}s both` } : style
+
   return (
     <>
-      <BaseEdge id={id} path={path} style={style} />
+      <BaseEdge id={id} path={path} style={shownStyle} />
       {data && data.pulse && <Pulse key={data.pulse} path={path} reverse={!!data.reverse} />}
     </>
   )
