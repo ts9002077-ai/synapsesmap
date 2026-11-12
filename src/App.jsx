@@ -3,6 +3,7 @@ import { ReactFlow, Background, Controls } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './effects.css'
 import SynapseNode from './SynapseNode'
+import SynapseEdge from './SynapseEdge'
 import ScoreBoard from './ScoreBoard'
 import UploadPanel from './UploadPanel'
 import Splash from './Splash'
@@ -16,6 +17,7 @@ import { ui } from './ui'
 import { theme } from './theme'
 
 const nodeTypes = { synapse: SynapseNode }
+const edgeTypes = { synapse: SynapseEdge }
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(() => window.innerWidth < 768)
@@ -41,6 +43,7 @@ function App() {
   const [streak, setStreak] = useState(0)
   const [done, setDone] = useState([])
   const [toast, setToast] = useState(null)
+    const [pulse, setPulse] = useState(null)
   const [voice, setVoice] = useState(() => {
     try {
       return localStorage.getItem('voice') === 'female' ? 'female' : 'male'
@@ -64,7 +67,12 @@ function App() {
     const on = lit.includes(e.source) || lit.includes(e.target)
     return {
       ...e,
+      type: 'synapse',
       animated: on,
+      data:
+        pulse && (e.source === pulse.id || e.target === pulse.id)
+          ? { pulse: pulse.stamp, reverse: e.target === pulse.id }
+          : undefined,
       style: on
         ? { stroke: theme.glow, strokeWidth: 3, filter: `drop-shadow(0 0 6px ${theme.glow})` }
         : { stroke: theme.accent, strokeWidth: 2, opacity: 0.6 },
@@ -77,6 +85,7 @@ function App() {
     setStreak(0)
     setDone([])
     setToast(null)
+        setPulse(null)
   }
 
   function changeTopic(id) {
@@ -102,7 +111,9 @@ function App() {
   }
 
   function lightUp(id) {
+    if (lit.includes(id)) return
     setLit((prev) => (prev.includes(id) ? prev : [...prev, id]))
+    setPulse({ id, stamp: Date.now() })
   }
 
   function reward(correct, q, quizType) {
@@ -184,6 +195,7 @@ function App() {
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         style={{ background: theme.background }}
         colorMode="dark"
         minZoom={0.2}
