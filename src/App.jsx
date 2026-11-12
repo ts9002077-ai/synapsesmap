@@ -6,6 +6,7 @@ import SynapseNode from './SynapseNode'
 import SynapseEdge from './SynapseEdge'
 import NetworkComplete from './NetworkComplete'
 import DemoBar from './DemoBar'
+import CameraFollow from './CameraFollow'
 import { buildScript } from './demoScript'
 import ScoreBoard from './ScoreBoard'
 import UploadPanel from './UploadPanel'
@@ -50,6 +51,8 @@ function App() {
       const [celebrate, setCelebrate] = useState(null)
         const [demo, setDemo] = useState(null)
   const [caption, setCaption] = useState('')
+    const [follow, setFollow] = useState(true)
+  const [overview, setOverview] = useState(0)
   const [voice, setVoice] = useState(() => {
     try {
       return localStorage.getItem('voice') === 'female' ? 'female' : 'male'
@@ -92,6 +95,7 @@ function App() {
     setDone([])
     setToast(null)
         setPulse(null)
+            setOverview(Date.now())
     setCelebrate(null)
   }
 
@@ -255,8 +259,27 @@ function App() {
         }}
       >
         <Background color={theme.accent} gap={28} />
+                <CameraFollow focus={pulse} overview={overview} enabled={follow || !!demo} zoom={isMobile ? 0.8 : 0.9} />
         <Controls showInteractive={false} />
-                <Panel position="top-right">
+               <Panel position="top-right" style={{ display: 'flex', gap: 8 }}>
+          {!isMobile && (
+            <button
+              className="lift"
+              onClick={() => setFollow(!follow)}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 999,
+                border: `1px solid ${theme.accent}`,
+                background: follow ? theme.accent : 'rgba(13, 13, 26, 0.85)',
+                color: 'white',
+                fontFamily: theme.font,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              🎥 {t.follow}
+            </button>
+          )}
           {!demo && (
             <button
               className="lift"

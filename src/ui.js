@@ -53,6 +53,7 @@ export const ui = {
     networkSub: 'Every connection is lit up.',
         demo: 'Auto demo',
     demoStop: 'Stop',
+        follow: 'Camera',
     up: {
       steps: [
         'Reading your notes...',
