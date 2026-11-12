@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { theme } from './theme'
+import { BADGES } from './badges'
 
 function useCountUp(target) {
   const [value, setValue] = useState(target)
@@ -26,7 +27,15 @@ function useCountUp(target) {
   return value
 }
 
-export default function ScoreBoard({ score, streak, lit, total, toast, label = 'connections' }) {
+export default function ScoreBoard({
+  score,
+  streak,
+  lit,
+  total,
+  toast,
+  label = 'connections',
+  badges = [],
+}) {
   const shown = useCountUp(score)
 
   return (
@@ -60,6 +69,15 @@ export default function ScoreBoard({ score, streak, lit, total, toast, label = '
           {lit} / {total} {label}
           {streak >= 2 ? `  ·  🔥 ${streak}` : ''}
         </div>
+        {badges.length > 0 && (
+          <div style={{ marginTop: 4, fontSize: 18 }}>
+            {BADGES.filter((b) => badges.includes(b.id)).map((b) => (
+              <span key={b.id} style={{ marginRight: 4, display: 'inline-block', animation: 'popIn 0.5s ease' }}>
+                {b.icon}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       {toast && (

@@ -5,6 +5,7 @@ import './effects.css'
 import SynapseNode from './SynapseNode'
 import SynapseEdge from './SynapseEdge'
 import NetworkComplete from './NetworkComplete'
+import BadgePop from './BadgePop'
 import DemoBar from './DemoBar'
 import CameraFollow from './CameraFollow'
 import { buildScript } from './demoScript'
@@ -47,6 +48,8 @@ function App() {
   const [streak, setStreak] = useState(0)
   const [done, setDone] = useState([])
   const [toast, setToast] = useState(null)
+    const [badges, setBadges] = useState([])
+  const [queue, setQueue] = useState([])
     const [pulse, setPulse] = useState(null)
       const [celebrate, setCelebrate] = useState(null)
         const [demo, setDemo] = useState(null)
@@ -94,6 +97,8 @@ function App() {
     setStreak(0)
     setDone([])
     setToast(null)
+        setBadges([])
+    setQueue([])
         setPulse(null)
             setOverview(Date.now())
     setCelebrate(null)
@@ -121,12 +126,22 @@ function App() {
     })
   }
 
+  function unlock(id) {
+    if (demo) return
+    if (badges.includes(id)) return
+    setBadges((prev) => (prev.includes(id) ? prev : [...prev, id]))
+    setQueue((prev) => (prev.includes(id) ? prev : [...prev, id]))
+  }
+  
   function lightUp(id) {
     if (lit.includes(id)) return
     setLit((prev) => (prev.includes(id) ? prev : [...prev, id]))
     setPulse({ id, stamp: Date.now() })
+    if (lit.length === 0) unlock('first')
+    if (lit.length + 1 === Math.ceil(baseNodes.length / 2)) unlock('half')
     if (lit.length + 1 === baseNodes.length) {
       setCelebrate(Date.now())
+      unlock('complete')
       setTimeout(playNetwork, 1200)
     }
   }
@@ -140,6 +155,7 @@ function App() {
     const newStreak = streak + 1
     setStreak(newStreak)
     const key = topicId + '-' + quizType + '-' + q.question
+        if (newStreak === 5) unlock('streak')
     if (done.includes(key)) {
       setToast({ id: Date.now(), text: t.alreadyScored })
       return
@@ -305,6 +321,7 @@ function App() {
         streak={streak}
         lit={lit.length}
         total={baseNodes.length}
+        badges={badges}
         toast={toast}
         label={t.connections}
       />
@@ -347,7 +364,15 @@ function App() {
         </div>
       )}
 
-            {celebrate && (
+      {queue.length > 0 && (
+        <BadgePop
+          key={queue[0]}
+          id={queue[0]}
+          lang={topic.lang}
+          onDone={() => setQueue((prev) => prev.slice(1))}
+        />
+      )}
+                  {celebrate && (
         <NetworkComplete
           key={celebrate}
           title={t.networkTitle}
@@ -373,6 +398,7 @@ function App() {
           lit={lit.length}
           onLight={lightUp}
           onAnswer={reward}
+          onPerfect={() => unlock('perfect')}
           onReset={() => {
             if (window.confirm(t.resetConfirm)) resetAll()
           }}

@@ -70,7 +70,15 @@ const SOUNDS = {
       { freq: 2093.0, start: 0.9, duration: 1.2, type: 'sine', volume: 0.15 },
     ],
   },
-    switchMale: {
+  badge: {
+    seconds: 0.8,
+    notes: [
+      { freq: 1318.5, start: 0, duration: 0.15, type: 'sine', volume: 0.45 },
+      { freq: 1568.0, start: 0.1, duration: 0.15, type: 'sine', volume: 0.45 },
+      { freq: 2093.0, start: 0.2, duration: 0.5, type: 'sine', volume: 0.4 },
+    ],
+  },
+      switchMale: {
     seconds: 0.5,
     notes: [
       { freq: 392.0, start: 0, duration: 0.15, type: 'sine', volume: 0.5 },
@@ -200,4 +208,8 @@ export function playNetwork() {
 
 export function playChime() {
   playSound('correct')
+}
+
+export function playBadge() {
+  playSound('badge')
 }

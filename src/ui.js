@@ -123,6 +123,7 @@ export const ui = {
     networkSub: 'Semua sambungan telah menyala.',
         demo: 'Demo automatik',
     demoStop: 'Henti',
+        follow: 'Kamera',
     up: {
       steps: [
         'Membaca nota anda...',

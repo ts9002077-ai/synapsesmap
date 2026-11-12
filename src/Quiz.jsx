@@ -191,7 +191,7 @@ function ResultBox({ t, correct, total, percent, breakdown, otherLabel, onRetry,
   )
 }
 
-export default function Quiz({ topic, t, lit, onLight, onAnswer, onReset }) {
+export default function Quiz({ topic, t, lit, onLight, onAnswer, onReset, onPerfect }) {
   const [quizType, setQuizType] = useState('mcq')
   const [level, setLevel] = useState('all')
   const [qIndex, setQIndex] = useState(0)
@@ -269,6 +269,7 @@ export default function Quiz({ topic, t, lit, onLight, onAnswer, onReset }) {
   function next() {
     if (isLast) {
       playFinish(percent >= 50)
+      if (percent === 100 && pool.length >= 5 && onPerfect) onPerfect()
       setFinished(true)
       return
     }
