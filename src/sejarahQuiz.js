@@ -43,7 +43,24 @@ export const mcq = [
     answer: 0,
   },
 
-  // ---------- SEDERHANA ----------
+  {
+    nodeId: '1', level: 'easy',
+    question: 'Apakah kesan pendudukan Jepun terhadap rakyat Tanah Melayu?',
+    options: [
+      'Menyemarakkan semangat nasionalisme',
+      'Melaksanakan Malayan Union',
+      'Menubuhkan Perikatan',
+      'Mengembalikan kuasa raja-raja sepenuhnya',
+    ],
+    answer: 0,
+  },
+  {
+    nodeId: '19', level: 'easy',
+    question: 'Siapakah ketua negara di bawah Perlembagaan Persekutuan Tanah Melayu 1957?',
+    options: ['Perdana Menteri', 'Yang di-Pertuan Agong', 'Pesuruhjaya Tinggi', 'Ketua Menteri'],
+    answer: 1,
+  },
+    // ---------- SEDERHANA ----------
   {
     nodeId: '5', level: 'medium',
     question: 'Apakah tindakan raja-raja Melayu semasa Sir Edward Gent dilantik sebagai Gabenor Malayan Union?',

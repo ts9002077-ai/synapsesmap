@@ -4,6 +4,7 @@ import '@xyflow/react/dist/style.css'
 import './effects.css'
 import SynapseNode from './SynapseNode'
 import SynapseEdge from './SynapseEdge'
+import NetworkComplete from './NetworkComplete'
 import ScoreBoard from './ScoreBoard'
 import UploadPanel from './UploadPanel'
 import Splash from './Splash'
@@ -11,7 +12,7 @@ import NeuralBackground from './NeuralBackground'
 import Quiz from './Quiz'
 import VoiceSwitch from './VoiceSwitch'
 import { DiagramImage, PeopleDiagram } from './Diagrams'
-import { playReaction, playSwitch } from './sounds'
+import { playReaction, playSwitch, playNetwork } from './sounds'
 import { topics } from './topics'
 import { ui } from './ui'
 import { theme } from './theme'
@@ -44,6 +45,7 @@ function App() {
   const [done, setDone] = useState([])
   const [toast, setToast] = useState(null)
     const [pulse, setPulse] = useState(null)
+      const [celebrate, setCelebrate] = useState(null)
   const [voice, setVoice] = useState(() => {
     try {
       return localStorage.getItem('voice') === 'female' ? 'female' : 'male'
@@ -86,6 +88,7 @@ function App() {
     setDone([])
     setToast(null)
         setPulse(null)
+    setCelebrate(null)
   }
 
   function changeTopic(id) {
@@ -114,6 +117,10 @@ function App() {
     if (lit.includes(id)) return
     setLit((prev) => (prev.includes(id) ? prev : [...prev, id]))
     setPulse({ id, stamp: Date.now() })
+    if (lit.length + 1 === baseNodes.length) {
+      setCelebrate(Date.now())
+      setTimeout(playNetwork, 1200)
+    }
   }
 
   function reward(correct, q, quizType) {
@@ -255,6 +262,14 @@ function App() {
         </div>
       )}
 
+            {celebrate && (
+        <NetworkComplete
+          key={celebrate}
+          title={t.networkTitle}
+          subtitle={t.networkSub}
+          onDone={() => setCelebrate(null)}
+        />
+      )}
       <div style={{ display: tab === 'quiz' ? 'block' : 'none' }}>
         <Quiz
           key={topicId}

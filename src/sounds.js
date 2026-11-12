@@ -56,7 +56,21 @@ const SOUNDS = {
       { freq: 523.25, start: 0.3, duration: 0.65, type: 'sine', volume: 0.45 },
     ],
   },
-  switchMale: {
+  network: {
+    seconds: 2.2,
+    notes: [
+      { freq: 392.0, start: 0, duration: 0.2, type: 'triangle', volume: 0.45 },
+      { freq: 523.25, start: 0.15, duration: 0.2, type: 'triangle', volume: 0.45 },
+      { freq: 659.25, start: 0.3, duration: 0.2, type: 'triangle', volume: 0.45 },
+      { freq: 783.99, start: 0.45, duration: 0.2, type: 'triangle', volume: 0.45 },
+      { freq: 1046.5, start: 0.6, duration: 0.25, type: 'triangle', volume: 0.45 },
+      { freq: 1318.5, start: 0.75, duration: 0.25, type: 'triangle', volume: 0.45 },
+      { freq: 1568.0, start: 0.9, duration: 1.2, type: 'triangle', volume: 0.4 },
+      { freq: 1046.5, start: 0.9, duration: 1.2, type: 'sine', volume: 0.25 },
+      { freq: 2093.0, start: 0.9, duration: 1.2, type: 'sine', volume: 0.15 },
+    ],
+  },
+    switchMale: {
     seconds: 0.5,
     notes: [
       { freq: 392.0, start: 0, duration: 0.15, type: 'sine', volume: 0.5 },
@@ -178,4 +192,8 @@ export function playFinish(good) {
 
 export function playSwitch(voice) {
   playSound(voice === 'female' ? 'switchFemale' : 'switchMale')
+}
+
+export function playNetwork() {
+  playSound('network')
 }

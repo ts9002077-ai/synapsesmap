@@ -49,6 +49,8 @@ export const ui = {
     voiceFemale: '👩',
     voiceMaleName: 'Male',
     voiceFemaleName: 'Female',
+        networkTitle: 'Network complete!',
+    networkSub: 'Every connection is lit up.',
     up: {
       steps: [
         'Reading your notes...',
@@ -114,6 +116,8 @@ export const ui = {
     voiceFemale: '👩',
     voiceMaleName: 'Lelaki',
     voiceFemaleName: 'Perempuan',
+        networkTitle: 'Rangkaian lengkap!',
+    networkSub: 'Semua sambungan telah menyala.',
     up: {
       steps: [
         'Membaca nota anda...',
