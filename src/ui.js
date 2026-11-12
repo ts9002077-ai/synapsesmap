@@ -51,6 +51,8 @@ export const ui = {
     voiceFemaleName: 'Female',
         networkTitle: 'Network complete!',
     networkSub: 'Every connection is lit up.',
+        demo: 'Auto demo',
+    demoStop: 'Stop',
     up: {
       steps: [
         'Reading your notes...',
@@ -118,6 +120,8 @@ export const ui = {
     voiceFemaleName: 'Perempuan',
         networkTitle: 'Rangkaian lengkap!',
     networkSub: 'Semua sambungan telah menyala.',
+        demo: 'Demo automatik',
+    demoStop: 'Henti',
     up: {
       steps: [
         'Membaca nota anda...',

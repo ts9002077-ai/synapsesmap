@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ReactFlow, Background, Controls } from '@xyflow/react'
+import { ReactFlow, Background, Controls, Panel } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import './effects.css'
 import SynapseNode from './SynapseNode'
 import SynapseEdge from './SynapseEdge'
 import NetworkComplete from './NetworkComplete'
+import DemoBar from './DemoBar'
+import { buildScript } from './demoScript'
 import ScoreBoard from './ScoreBoard'
 import UploadPanel from './UploadPanel'
 import Splash from './Splash'
@@ -12,7 +14,7 @@ import NeuralBackground from './NeuralBackground'
 import Quiz from './Quiz'
 import VoiceSwitch from './VoiceSwitch'
 import { DiagramImage, PeopleDiagram } from './Diagrams'
-import { playReaction, playSwitch, playNetwork } from './sounds'
+import { playReaction, playSwitch, playNetwork, playChime } from './sounds'
 import { topics } from './topics'
 import { ui } from './ui'
 import { theme } from './theme'
@@ -46,6 +48,8 @@ function App() {
   const [toast, setToast] = useState(null)
     const [pulse, setPulse] = useState(null)
       const [celebrate, setCelebrate] = useState(null)
+        const [demo, setDemo] = useState(null)
+  const [caption, setCaption] = useState('')
   const [voice, setVoice] = useState(() => {
     try {
       return localStorage.getItem('voice') === 'female' ? 'female' : 'male'
@@ -146,6 +150,44 @@ function App() {
     })
   }
 
+  const script = buildScript(topic, isMobile)
+
+  function startDemo() {
+    setDemo({ step: 0 })
+  }
+
+  function stopDemo() {
+    setDemo(null)
+    setCaption('')
+  }
+
+  function demoLight(id) {
+    lightUp(id)
+    const newStreak = streak + 1
+    setStreak(newStreak)
+    const gain = 10 + (newStreak >= 3 ? 5 : 0)
+    setScore(score + gain)
+    setToast({ id: Date.now(), text: `+${gain}` + (newStreak >= 2 ? `  🔥 ${newStreak}` : '') })
+    playChime()
+  }
+
+  useEffect(() => {
+    if (!demo) return
+    const s = script[demo.step]
+    if (!s) {
+      setDemo(null)
+      setCaption('')
+      return
+    }
+    if (s.reset) resetAll()
+    if (s.tab) setTab(s.tab)
+    if (s.select !== undefined) setSelected(s.select)
+    if (s.caption) setCaption(s.caption)
+    if (s.light) demoLight(s.light)
+    const timer = setTimeout(() => setDemo((d) => (d ? { step: d.step + 1 } : d)), s.wait)
+    return () => clearTimeout(timer)
+  }, [demo])
+  
   const btn = (active) => ({
     flex: 1,
     padding: '12px 14px',
@@ -214,6 +256,26 @@ function App() {
       >
         <Background color={theme.accent} gap={28} />
         <Controls showInteractive={false} />
+                <Panel position="top-right">
+          {!demo && (
+            <button
+              className="lift"
+              onClick={startDemo}
+              style={{
+                padding: '8px 14px',
+                borderRadius: 999,
+                border: `1px solid ${theme.accent}`,
+                background: 'rgba(13, 13, 26, 0.85)',
+                color: 'white',
+                fontFamily: theme.font,
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+            >
+              ▶ {t.demo}
+            </button>
+          )}
+        </Panel>
       </ReactFlow>
       <ScoreBoard
         score={score}
@@ -268,6 +330,16 @@ function App() {
           title={t.networkTitle}
           subtitle={t.networkSub}
           onDone={() => setCelebrate(null)}
+        />
+      )}
+            {demo && (
+        <DemoBar
+          caption={caption}
+          progress={demo.step / script.length}
+          stopLabel={t.demoStop}
+          onStop={stopDemo}
+          right={isMobile ? 16 : 376}
+          bottom={isMobile ? 84 : 24}
         />
       )}
       <div style={{ display: tab === 'quiz' ? 'block' : 'none' }}>

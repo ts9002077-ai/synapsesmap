@@ -197,3 +197,7 @@ export function playSwitch(voice) {
 export function playNetwork() {
   playSound('network')
 }
+
+export function playChime() {
+  playSound('correct')
+}
