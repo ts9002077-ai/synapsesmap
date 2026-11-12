@@ -30,6 +30,14 @@ const chip = (active) => ({
   textTransform: 'capitalize',
 })
 
+const sectionLabel = {
+  margin: '0 0 6px',
+  fontSize: 12,
+  opacity: 0.6,
+  textTransform: 'uppercase',
+  letterSpacing: 1,
+}
+
 function ResultBox({ t, correct, total, percent, breakdown, otherLabel, onRetry, onOther }) {
   const [shown, setShown] = useState(0)
   const [confetti] = useState(() =>
@@ -192,6 +200,7 @@ export default function Quiz({ topic, t, lit, onLight, onAnswer, onReset }) {
   const [result, setResult] = useState(null)
   const [answers, setAnswers] = useState({})
   const [finished, setFinished] = useState(false)
+  const [triedWritten, setTriedWritten] = useState(false)
 
   const all = quizType === 'mcq' ? topic.mcq : topic.written
   const pool = all.filter((item) => level === 'all' || item.level === level)
@@ -223,11 +232,14 @@ export default function Quiz({ topic, t, lit, onLight, onAnswer, onReset }) {
   }
 
   function changeType(ty) {
+    if (ty === quizType) return
+    if (ty === 'written') setTriedWritten(true)
     setQuizType(ty)
     resetRound()
   }
 
   function changeLevel(l) {
+    if (l === level) return
     setLevel(l)
     resetRound()
   }
@@ -285,18 +297,65 @@ export default function Quiz({ topic, t, lit, onLight, onAnswer, onReset }) {
 
   return (
     <>
-      <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
-        <button className="lift" style={chip(quizType === 'mcq')} onClick={() => changeType('mcq')}>
-          {t.mcq}
-        </button>
-        <button className="lift" style={chip(quizType === 'written')} onClick={() => changeType('written')}>
-          {t.written}
-        </button>
+      <p style={sectionLabel}>{t.questionType}</p>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 6 }}>
+        {[
+          ['mcq', '☑️', t.mcq],
+          ['written', '✍️', t.written],
+        ].map(([id, icon, label]) => {
+          const active = quizType === id
+          const count = (id === 'mcq' ? topic.mcq : topic.written).filter(
+            (x) => level === 'all' || x.level === level
+          ).length
+          return (
+            <button
+              key={id}
+              className="lift"
+              onClick={() => changeType(id)}
+              style={{
+                position: 'relative',
+                flex: 1,
+                padding: '12px 8px',
+                borderRadius: 12,
+                border: `2px solid ${active ? theme.accent : '#2d2d52'}`,
+                background: active ? 'linear-gradient(135deg, #3b2f8f, #1f3a8a)' : '#12122a',
+                color: 'white',
+                cursor: 'pointer',
+                fontFamily: theme.font,
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: 22 }}>{icon}</div>
+              <div style={{ fontWeight: 600, fontSize: 13 }}>{label}</div>
+              <div style={{ opacity: 0.7, fontSize: 12 }}>{count}</div>
+              {id === 'written' && !triedWritten && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    width: 10,
+                    height: 10,
+                    borderRadius: '50%',
+                    background: theme.glow,
+                    boxShadow: `0 0 10px ${theme.glow}`,
+                    animation: 'glowBreath 1.6s ease-in-out infinite',
+                  }}
+                />
+              )}
+            </button>
+          )
+        })}
       </div>
+      <p style={{ margin: '0 0 14px', fontSize: 12, opacity: 0.65 }}>
+        {quizType === 'mcq' ? t.mcqHint : t.writtenHint}
+      </p>
 
+      <p style={sectionLabel}>{t.difficulty}</p>
       <div style={{ display: 'flex', gap: 6, marginBottom: 14, flexWrap: 'wrap' }}>
         {['all', 'easy', 'medium', 'hard'].map((l) => (
           <button key={l} className="lift" style={chip(level === l)} onClick={() => changeLevel(l)}>
+            <span style={{ color: levelColor[l] || '#9a9ab8' }}>● </span>
             {t.levels[l]}
           </button>
         ))}

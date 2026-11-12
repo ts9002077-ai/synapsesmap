@@ -8,8 +8,9 @@ import UploadPanel from './UploadPanel'
 import Splash from './Splash'
 import NeuralBackground from './NeuralBackground'
 import Quiz from './Quiz'
+import VoiceSwitch from './VoiceSwitch'
 import { DiagramImage, PeopleDiagram } from './Diagrams'
-import { playReaction } from './sounds'
+import { playReaction, playSwitch } from './sounds'
 import { topics } from './topics'
 import { ui } from './ui'
 import { theme } from './theme'
@@ -40,6 +41,13 @@ function App() {
   const [streak, setStreak] = useState(0)
   const [done, setDone] = useState([])
   const [toast, setToast] = useState(null)
+  const [voice, setVoice] = useState(() => {
+    try {
+      return localStorage.getItem('voice') === 'female' ? 'female' : 'male'
+    } catch {
+      return 'male'
+    }
+  })
 
   const tab = isMobile ? rawTab : rawTab === 'map' ? 'notes' : rawTab
   const topic = topics.find((x) => x.id === topicId)
@@ -78,12 +86,27 @@ function App() {
     resetAll()
   }
 
+  function changeVoice(v) {
+    if (v === voice) return
+    setVoice(v)
+    try {
+      localStorage.setItem('voice', v)
+    } catch {
+      // storage not available, the choice just won't be remembered
+    }
+    playSwitch(v)
+    setToast({
+      id: Date.now(),
+      text: `🎙️ ${t.voice}: ${v === 'female' ? t.voiceFemaleName : t.voiceMaleName}`,
+    })
+  }
+
   function lightUp(id) {
     setLit((prev) => (prev.includes(id) ? prev : [...prev, id]))
   }
 
   function reward(correct, q, quizType) {
-    playReaction(correct, topic.lang)
+    playReaction(correct, topic.lang, voice)
     if (!correct) {
       setStreak(0)
       return
@@ -311,6 +334,7 @@ function App() {
           }}
         >
           {topicSelect}
+          <VoiceSwitch voice={voice} onChange={changeVoice} t={t} />
           {tab !== 'map' && (
             <div style={{ whiteSpace: 'nowrap', fontWeight: 600, color: theme.glow }}>
               ⚡ {score}
@@ -393,6 +417,17 @@ function App() {
             SynapseMap Ai
           </div>
           {topicSelect}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              marginTop: 10,
+            }}
+          >
+            <span style={{ fontSize: 13, opacity: 0.7 }}>🎙️ {t.voice}</span>
+            <VoiceSwitch voice={voice} onChange={changeVoice} t={t} />
+          </div>
         </div>
 
         <div style={{ display: 'flex', gap: 6, padding: 10, borderBottom: '1px solid #1f1f3a' }}>

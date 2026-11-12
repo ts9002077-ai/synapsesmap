@@ -40,6 +40,15 @@ export const ui = {
     tryAgain: 'Try again',
     tryMcq: 'Try multiple choice',
     tryWritten: 'Try written questions',
+        questionType: 'Question type',
+    difficulty: 'Difficulty',
+    mcqHint: 'Pick the correct option.',
+    writtenHint: 'Write the answer in your own words. We check for the key points.',
+    voice: 'Voice',
+    voiceMale: '👨',
+    voiceFemale: '👩',
+    voiceMaleName: 'Male',
+    voiceFemaleName: 'Female',
     up: {
       steps: [
         'Reading your notes...',
@@ -96,6 +105,15 @@ export const ui = {
     tryAgain: 'Cuba lagi',
     tryMcq: 'Cuba aneka pilihan',
     tryWritten: 'Cuba soalan bertulis',
+        questionType: 'Jenis soalan',
+    difficulty: 'Tahap kesukaran',
+    mcqHint: 'Pilih jawapan yang betul.',
+    writtenHint: 'Tulis jawapan dengan ayat sendiri. Kami semak isi pentingnya.',
+    voice: 'Suara',
+    voiceMale: '👨',
+    voiceFemale: '👩',
+    voiceMaleName: 'Lelaki',
+    voiceFemaleName: 'Perempuan',
     up: {
       steps: [
         'Membaca nota anda...',

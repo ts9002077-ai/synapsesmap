@@ -1,18 +1,25 @@
-// File type of your recordings for each language (for example 'mp3', 'm4a', 'wav' or 'ogg')
-const AUDIO_EXT = { en: 'mp3', ms: 'ogg' }
-
-// How many voice clips you recorded for each language and reaction
-const VOICE_COUNT = {
-  en: { correct: 1, wrong: 1 },
-  ms: { correct: 3, wrong: 3 },
-}
-
-// English clips live in /audio, other languages in /audio/<language>
-function voiceFolder(lang) {
-  return lang === 'en' ? '/audio' : `/audio/${lang}`
-}
-
 const RATE = 22050
+
+// Voice clips. Each clip is searched for in /audio and /audio/ms.
+const VOICES = {
+  male: {
+    en: { correct: ['correct1.mp3'], wrong: ['wrong1.mp3'] },
+    ms: {
+      correct: ['correct1.ogg', 'correct2.ogg', 'correct3.ogg'],
+      wrong: ['wrong1.ogg', 'wrong2.ogg', 'wrong3.ogg'],
+    },
+  },
+  female: {
+    en: {
+      correct: ['correct1.0.mp3', 'correct2.0.mp3', 'correct3.0.mp3'],
+      wrong: ['wrong1.0.mp3', 'wrong2.0.mp3', 'wrong3.0.mp3'],
+    },
+    ms: {
+      correct: ['correctms1.mp3', 'correctms2.mp3', 'correctms3.mp3'],
+      wrong: ['wrongms1.mp3', 'wrongms2.mp3', 'wrongms3.mp3'],
+    },
+  },
+}
 
 const SOUNDS = {
   correct: {
@@ -49,10 +56,25 @@ const SOUNDS = {
       { freq: 523.25, start: 0.3, duration: 0.65, type: 'sine', volume: 0.45 },
     ],
   },
+  switchMale: {
+    seconds: 0.5,
+    notes: [
+      { freq: 392.0, start: 0, duration: 0.15, type: 'sine', volume: 0.5 },
+      { freq: 293.66, start: 0.12, duration: 0.3, type: 'sine', volume: 0.5 },
+    ],
+  },
+  switchFemale: {
+    seconds: 0.5,
+    notes: [
+      { freq: 659.25, start: 0, duration: 0.15, type: 'sine', volume: 0.5 },
+      { freq: 987.77, start: 0.12, duration: 0.3, type: 'sine', volume: 0.5 },
+    ],
+  },
 }
 
 const urls = {}
 let currentVoice = null
+let token = 0
 
 // Builds the sound as raw samples
 function render(def) {
@@ -81,7 +103,7 @@ function render(def) {
   return data
 }
 
-// Wraps the samples in a WAV file so it can play like any other audio file
+// Wraps the samples in a WAV file so it plays like any other audio file
 function toWavUrl(data) {
   const buffer = new ArrayBuffer(44 + data.length * 2)
   const view = new DataView(buffer)
@@ -118,25 +140,42 @@ function playSound(name) {
   audio.play().catch(() => {})
 }
 
-function playVoice(path) {
+// Tries each address in turn until one plays
+function playFirst(list) {
+  token += 1
+  const mine = token
   if (currentVoice) currentVoice.pause()
-  const audio = new Audio(path)
-  currentVoice = audio
-  audio.play().catch(() => {})
+  let i = 0
+
+  function attempt() {
+    if (mine !== token || i >= list.length) return
+    const audio = new Audio(list[i])
+    i += 1
+    currentVoice = audio
+    audio.onerror = attempt
+    audio.play().catch(() => {})
+  }
+
+  attempt()
 }
 
-export function playReaction(correct, lang = 'en') {
+export function playReaction(correct, lang = 'en', voice = 'male') {
   playSound(correct ? 'correct' : 'wrong')
 
   const kind = correct ? 'correct' : 'wrong'
-  const count = (VOICE_COUNT[lang] || {})[kind] || 0
-  if (count === 0) return
+  const clips = ((VOICES[voice] || VOICES.male)[lang] || {})[kind] || []
+  if (clips.length === 0) return
 
-  const n = Math.floor(Math.random() * count) + 1
-  const path = `${voiceFolder(lang)}/${kind}${n}.${AUDIO_EXT[lang] || 'mp3'}`
-  setTimeout(() => playVoice(path), correct ? 800 : 550)
+  const file = clips[Math.floor(Math.random() * clips.length)]
+  const folders = lang === 'en' ? ['/audio', '/audio/ms'] : ['/audio/ms', '/audio']
+  const list = folders.map((f) => `${f}/${file}`)
+  setTimeout(() => playFirst(list), correct ? 800 : 550)
 }
 
 export function playFinish(good) {
   playSound(good ? 'finishGood' : 'finishSoft')
+}
+
+export function playSwitch(voice) {
+  playSound(voice === 'female' ? 'switchFemale' : 'switchMale')
 }
